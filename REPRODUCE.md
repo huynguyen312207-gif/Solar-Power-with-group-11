@@ -30,13 +30,13 @@ Tài liệu này giúp người chưa từng tham gia dự án chạy lại toà
 
 ## 1. Quick Start (từ máy trống đến Bảng 4–6, khoảng 5 phút)
 
-Cần Python 3.12 và Git. Khối lệnh dưới đây **không huấn luyện lại**; nó nạp checkpoint có sẵn và tính lại Bảng 4, 5, 6.
+Cần Python 3.12, 3.13 hoặc 3.14 và Git. Khối lệnh dưới đây **không huấn luyện lại**; nó nạp checkpoint có sẵn và tính lại Bảng 4, 5, 6.
 
 ```bash
 git clone https://github.com/huynguyen312207-gif/Solar-Power-with-group-11.git
 cd Solar-Power-with-group-11
 git checkout v1.0-final
-python3.12 -m venv .venv && source .venv/bin/activate      # Windows: py -3.12 -m venv .venv  rồi  .venv\Scripts\activate
+python3 -m venv .venv && source .venv/bin/activate         # Windows: py -m venv .venv  rồi  .venv\Scripts\activate
 pip install -r requirements.txt                             # 3–5 phút
 python -m src.build_features                                # 5 giây  -> data/processed/features.csv
 python scripts/check_sha256.py                              # kiểm tra checksum dữ liệu + checkpoint
@@ -108,7 +108,7 @@ Notebook gốc dùng đường dẫn Google Drive (`/content/drive/MyDrive/Group
 | Nền tảng | Google Colab, tháng 10/2026 | Linux x86_64 (Ubuntu, glibc 2.39) | Linux / Windows 10+ / macOS 13+ |
 | CPU / RAM | Colab mặc định | 2 vCPU, 7 GB RAM | 2 nhân, 8 GB |
 | GPU | NVIDIA T4 (chỉ LSTM dùng GPU) | Không có GPU | Không bắt buộc |
-| Python | Colab mặc định (không ghi lại) | 3.12.3 | 3.12.x |
+| Python | Colab mặc định (không ghi lại) | 3.12.3; Quick Start kiểm thêm trên 3.13.18 và 3.14.6 | 3.12–3.14 |
 | Thư viện chính | scikit-learn 1.6.1, xgboost 3.4.1 (đọc từ checkpoint); các gói khác không ghi lại | như `requirements.txt` | như `requirements.txt` |
 | Dung lượng đĩa | — | repo khoảng 60 MB + venv 7 GB (torch kèm CUDA) | 2 GB nếu cài torch bản CPU |
 | Đánh giá từ checkpoint | — | 20 giây | — |
@@ -124,12 +124,12 @@ Dự án là ML truyền thống kết hợp một mô hình DL nhỏ (LSTM 2 l�
 Cách cài: `venv` + `requirements.txt` (khóa phiên bản chính xác).
 
 ```bash
-python3.12 -m venv .venv
+python3 -m venv .venv                     # Python 3.12, 3.13 hoặc 3.14
 source .venv/bin/activate                 # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-`scikit-learn==1.6.1` và `xgboost==3.4.1` là đúng phiên bản đã tạo các file `.pkl` trên Colab (đọc được từ metadata của checkpoint); không nâng cấp hai gói này, nếu không `pickle` sẽ cảnh báo hoặc lỗi. Máy không có GPU có thể cài torch bản CPU (nhẹ hơn khoảng 5 GB) **trước** khi cài phần còn lại:
+`scikit-learn==1.6.1` và `xgboost==3.4.1` là đúng phiên bản đã tạo các file `.pkl` trên Colab (đọc được từ metadata của checkpoint); không tự nâng cấp hai gói này. `requirements.txt` tự chọn bản numpy/pandas/matplotlib có sẵn cho từng phiên bản Python (3.12, 3.13, 3.14). Riêng Python 3.14 chưa có scikit-learn 1.6.1 nên dùng 1.7.2; đã kiểm chứng checkpoint vẫn cho đúng 88/88 số liệu. Máy không có GPU có thể cài torch bản CPU (nhẹ hơn khoảng 5 GB) **trước** khi cài phần còn lại:
 
 ```bash
 pip install torch==2.9.1 --index-url https://download.pytorch.org/whl/cpu
@@ -140,7 +140,7 @@ Kiểm tra cài đặt:
 
 ```bash
 python -c "import sklearn, xgboost, statsmodels, torch, pandas; print(sklearn.__version__, xgboost.__version__, statsmodels.__version__, torch.__version__.split('+')[0], pandas.__version__)"
-# Mong đợi: 1.6.1 3.4.1 0.14.5 2.9.1 2.2.2
+# Mong đợi: Python 3.12 -> 1.6.1 3.4.1 0.14.5 2.9.1 2.2.2 | 3.13 -> ... 2.2.3 | 3.14 -> 1.7.2 3.4.1 0.14.5 2.9.1 2.3.3
 ```
 
 Dự án không dùng biến môi trường, API key hay dịch vụ trả phí.
@@ -366,7 +366,7 @@ Các lệnh dùng `outputs/checkpoint_eval` cần chạy `python -m src.predict_
 | `ModuleNotFoundError: No module named 'src'` | chạy lệnh không ở thư mục gốc repo, hoặc chạy `python src/train.py` | `cd` về gốc repo và dùng `python -m src.train` |
 | `check_sha256.py` báo `FAIL Combined_Plant_Data_Updated.csv` trên Windows | Git đổi LF→CRLF khi clone (repo cũ chưa có `.gitattributes`) | `git config core.autocrlf false`, xóa thư mục rồi clone lại |
 | Colab: `numpy.dtype size changed` sau `pip install` | gói đã nạp trước khi hạ phiên bản numpy/pandas | *Runtime → Restart session*, rồi chạy tiếp |
-| `pip` không tìm thấy bản `scikit-learn==1.6.1` hoặc `torch==2.9.1` | phiên bản Python quá mới hoặc quá cũ | dùng Python 3.12 |
+| `pip` không tìm thấy bản phù hợp, hoặc tải file `.tar.gz` rồi đứng rất lâu ở *Preparing metadata* | Python ngoài khoảng 3.12–3.14 nên pip phải tự build từ mã nguồn | dùng Python 3.12–3.14 (`python --version` để kiểm tra) |
 | Hết dung lượng khi cài torch | bản PyPI kèm CUDA (~5 GB) | cài bản CPU như Mục 4 |
 
 ---
