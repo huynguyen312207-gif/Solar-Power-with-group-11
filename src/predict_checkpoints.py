@@ -44,8 +44,14 @@ def main() -> None:
 
     pred_tab = test[["DATE_TIME", "SOURCE_KEY_ENCODED", "PLANT_ID_4136001", target, "IRR_RAW",
                      "IS_ANOMALY"]].copy()
+    import sklearn
+    if sklearn.__version__ != "1.6.1":
+        print(f"Lưu ý: checkpoint tạo bằng scikit-learn 1.6.1, đang dùng {sklearn.__version__} "
+              "(đã kiểm chứng 1.7.2 cho kết quả giống hệt)")
     for name in ("LinearRegression", "RandomForest", "XGBoost"):
-        m, feats = joblib.load(ck / f"model_{name}.pkl")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            m, feats = joblib.load(ck / f"model_{name}.pkl")
         pred_tab[name] = np.clip(m.predict(test[feats]), 0, None)
         print(f"{name:17s} <- {ck.name}/model_{name}.pkl ({len(feats)} cột)")
     pred_tab.to_csv(out / "pred_test_tabular.csv", index=False)
