@@ -1,0 +1,37 @@
+# Số liệu trong báo cáo final.pdf (Bảng 4, 5, 6 và Mục 7.6) để src.evaluate tự đối chiếu.
+
+tolerance:
+  exact:      # đánh giá từ checkpoint/dự đoán có sẵn: phải khớp tới chữ số làm tròn trong báo cáo
+    r2_abs: 0.00005
+    err_abs: 0.005      # kW (RMSE, MAE làm tròn 2 chữ số)
+    err_rel: 0.0
+  retrain:    # huấn luyện lại từ đầu (CPU/GPU khác, thư viện khác): ngưỡng khai báo ở Mục 9 REPRODUCE.md
+    r2_abs: 0.01        # 1 điểm %
+    err_abs: 0.0
+    err_rel: 0.05       # 5% với RMSE, MAE
+
+report:
+  table4:
+    Linear Regression: {RMSE: 151.07, MAE: 50.58, R2: 0.8086, RMSE_day: 200.36, MAE_day: 86.39, R2_day: 0.6794}
+    Random Forest:     {RMSE: 154.18, MAE: 44.03, R2: 0.8006, RMSE_day: 204.55, MAE_day: 77.50, R2_day: 0.6659}
+    XGBoost:           {RMSE: 153.80, MAE: 44.22, R2: 0.8016, RMSE_day: 204.04, MAE_day: 77.72, R2_day: 0.6675}
+    LSTM:              {RMSE: 144.88, MAE: 49.36, R2: 0.8239, RMSE_day: 192.21, MAE_day: 86.24, R2_day: 0.7050}
+  table5:
+    LSTM:              {RMSE: 87.29,  MAE: 36.23, R2: 0.9282, RMSE_day: 115.80, MAE_day: 63.13,  R2_day: 0.8687}
+    ARIMAX:            {RMSE: 98.39,  MAE: 50.77, R2: 0.9088, RMSE_day: 130.23, MAE_day: 83.97,  R2_day: 0.8340}
+    Linear Regression: {RMSE: 98.71,  MAE: 40.75, R2: 0.9082, RMSE_day: 130.92, MAE_day: 69.08,  R2_day: 0.8322}
+    XGBoost:           {RMSE: 99.35,  MAE: 34.08, R2: 0.9070, RMSE_day: 131.80, MAE_day: 59.89,  R2_day: 0.8300}
+    Random Forest:     {RMSE: 103.38, MAE: 34.39, R2: 0.8993, RMSE_day: 137.16, MAE_day: 60.54,  R2_day: 0.8159}
+    SARIMAX:           {RMSE: 108.60, MAE: 56.97, R2: 0.8889, RMSE_day: 144.08, MAE_day: 100.07, R2_day: 0.7968}
+  table6:
+    LSTM:              {"Plant 1 (all)": 0.9930, "Plant 2 (all)": 0.7900, "Plant 1 (w/o anomalous)": 0.9923, "Plant 2 (w/o anomalous)": 0.9410}
+    ARIMAX:            {"Plant 1 (all)": 0.9872, "Plant 2 (all)": 0.7414, "Plant 1 (w/o anomalous)": 0.9860, "Plant 2 (w/o anomalous)": 0.9085}
+    Linear Regression: {"Plant 1 (all)": 0.9919, "Plant 2 (all)": 0.7297, "Plant 1 (w/o anomalous)": 0.9914, "Plant 2 (w/o anomalous)": 0.9424}
+    XGBoost:           {"Plant 1 (all)": 0.9910, "Plant 2 (all)": 0.7278, "Plant 1 (w/o anomalous)": 0.9912, "Plant 2 (w/o anomalous)": 0.9423}
+    Random Forest:     {"Plant 1 (all)": 0.9891, "Plant 2 (all)": 0.7077, "Plant 1 (w/o anomalous)": 0.9894, "Plant 2 (w/o anomalous)": 0.9387}
+    SARIMAX:           {"Plant 1 (all)": 0.9508, "Plant 2 (all)": 0.7548, "Plant 1 (w/o anomalous)": 0.9500, "Plant 2 (w/o anomalous)": 0.8807}
+  p2_01:              # R2 của LSTM tại Plant 2 (Mục 7.6)
+    all records: {R2: 0.7900}
+    without P2-01: {R2: 0.8173}
+    without anomalous records: {R2: 0.9410}
+    without both: {R2: 0.9414}

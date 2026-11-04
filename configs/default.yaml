@@ -1,0 +1,66 @@
+# Cấu hình duy nhất cho toàn bộ pipeline (khớp với notebook ADY201m_Solar_Power.ipynb
+# và với các số liệu trong báo cáo final.pdf). Mọi đường dẫn tính từ thư mục gốc repo.
+
+seed: 42                       # numpy + torch; dùng --seed để ghi đè (xem Mục 9 REPRODUCE.md)
+
+paths:
+  raw_dir: data/raw                              # 4 file CSV gốc từ Kaggle (tùy chọn)
+  merged_csv: Combined_Plant_Data_Updated.csv    # dữ liệu đã gộp + sửa DC_POWER (có sẵn trong repo)
+  features_csv: data/processed/features.csv      # = Combined_Plant_Data_Updated_New_Feature_2.csv trong notebook
+  inverter_ids: inverter_ids.csv                 # ánh xạ P1-01..P2-22 <-> SOURCE_KEY
+  reference_dir: model_training-20261019T083032Z-1-001/model_training   # checkpoint + dự đoán gốc (Colab, GPU T4)
+  outputs: outputs
+
+data:
+  dc_fix_plant: 4135001        # chia DC_POWER của Plant 1 cho 10 (lỗi đơn vị, Mục 5.1 báo cáo)
+  dc_fix_factor: 10
+  daytime_start_min: 360       # IS DAYTIME = 1 nếu 06:00 <= giờ <= 17:45
+  daytime_end_min: 1065
+  split_fracs: [0.70, 0.85]    # cắt 70/15/15 theo số dòng, làm tròn tới mốc thời gian
+  anomaly_irradiation: 0.3     # dòng bất thường: IRRADIATION > 0.3 và AC_POWER == 0
+
+features:
+  tabular: [AMBIENT_TEMPERATURE, MODULE_TEMPERATURE, IRRADIATION, HOUR, IS DAYTIME, TEMP DIFF,
+            SOURCE_KEY_ENCODED, PLANT_ID_4136001]
+  # Linear Regression: bỏ SOURCE_KEY_ENCODED, thay bằng 43 cột one-hot SK_*; bỏ thêm 2 cột là tổ hợp tuyến tính
+  # của cột khác (Mục 5.2 báo cáo). Checkpoint gốc giữ 2 cột này nhưng dự đoán trùng khớp (sai khác < 1e-6 kW).
+  linear_regression_drop: [TEMP DIFF, PLANT_ID_4136001]
+  scale: [AMBIENT_TEMPERATURE, MODULE_TEMPERATURE, IRRADIATION, HOUR, TEMP DIFF]
+  sequence: [AMBIENT_TEMPERATURE, MODULE_TEMPERATURE, IRRADIATION, TEMP DIFF, HOUR_SIN, HOUR_COS,
+             IS DAYTIME, PLANT_ID_4136001]
+  exog: [IRRADIATION, MODULE_TEMPERATURE, AMBIENT_TEMPERATURE]
+  target: AC_POWER
+
+models:
+  RandomForest:
+    random_state: 42           # --seed ghi đè
+    grid: {n_estimators: [42], max_depth: [10, 16], min_samples_leaf: [5, 20]}
+  XGBoost:
+    random_state: 800          # giá trị đã dùng trong notebook; --seed ghi đè
+    subsample: 0.8
+    colsample_bytree: 0.8
+    grid: {n_estimators: [800], max_depth: [4, 6, 8], learning_rate: [0.05, 0.1]}
+  ARIMA:
+    freq: 15min
+    candidates:
+      - {order: [1, 0, 1], seasonal_order: [0, 0, 0, 0]}
+      - {order: [2, 0, 1], seasonal_order: [0, 0, 0, 0]}
+      - {order: [2, 0, 2], seasonal_order: [0, 0, 0, 0]}
+      - {order: [1, 1, 1], seasonal_order: [0, 0, 0, 0]}
+  SARIMA:
+    freq: 1h
+    candidates:
+      - {order: [1, 0, 1], seasonal_order: [1, 0, 0, 24]}
+      - {order: [1, 0, 1], seasonal_order: [0, 1, 1, 24]}
+      - {order: [2, 0, 1], seasonal_order: [1, 0, 1, 24]}
+  LSTM:
+    window: 16                 # 16 x 15 phút = 4 giờ
+    hidden: 64
+    layers: 2
+    dropout: 0.2
+    embedding: 4
+    lr: 0.001
+    batch_size: 256
+    max_epochs: 40
+    patience: 6
+    min_delta: 0.1             # kW
